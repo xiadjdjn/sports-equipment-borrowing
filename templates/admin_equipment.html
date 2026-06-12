@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}器材管理 - 体育用品借还管理系统{% endblock %}
+{% block content %}
+<div class="section-title">
+    <h1>器材管理</h1>
+    <a class="btn btn-accent" href="{{ url_for('admin_equipment_new') }}">添加用品</a>
+</div>
+
+<form class="filter-bar row g-2 mb-3" method="get">
+    <div class="col-md-5">
+        <input class="form-control" name="keyword" value="{{ keyword }}" placeholder="按用品名称搜索">
+    </div>
+    <div class="col-md-4">
+        <select class="form-select" name="category">
+            <option value="">全部分类</option>
+            {% for item in categories %}
+                <option value="{{ item }}" {% if category == item %}selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3 d-grid">
+        <button class="btn btn-primary" type="submit">查询</button>
+    </div>
+</form>
+
+<div class="table-responsive data-table-wrap">
+    <table class="table table-hover align-middle">
+        <thead>
+        <tr>
+            <th>用品名称</th>
+            <th>分类</th>
+            <th>总库存</th>
+            <th>可借数量</th>
+            <th>状态</th>
+            <th>备注</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in equipment %}
+            <tr>
+                <td data-label="用品名称">
+                    <span class="table-item-name">
+                        <img src="{{ url_for('static', filename=equipment_image(item)) }}" alt="{{ item.name }}插画">
+                        {{ item.name }}
+                    </span>
+                </td>
+                <td data-label="分类">{{ item.category }}</td>
+                <td data-label="总库存">{{ item.total_stock }}</td>
+                <td data-label="可借数量"><strong class="stock-inline">{{ item.available_stock }}</strong></td>
+                <td data-label="状态"><span class="badge {{ 'status-available' if item.status == '正常' else 'status-disabled' }}">{{ item.status }}</span></td>
+                <td data-label="备注">{{ item.remark or "-" }}</td>
+                <td class="table-actions" data-label="操作">
+                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin_equipment_edit', equipment_id=item.id) }}">修改</a>
+                    <form method="post" action="{{ url_for('admin_equipment_delete', equipment_id=item.id) }}" onsubmit="return confirm('确定删除该用品吗？');">
+                        <button class="btn btn-sm btn-outline-danger" type="submit">删除</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td class="empty-table-cell" colspan="7">
+                    <img src="{{ url_for('static', filename='images/split/empty-borrow.png') }}" alt="暂无用品数据">
+                    <strong>暂无用品数据</strong>
+                    <span>新增器材后，学生即可在借用页查看库存。</span>
+                    <a class="btn btn-sm btn-accent" href="{{ url_for('admin_equipment_new') }}">去新增器材</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

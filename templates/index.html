@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block title %}首页 - 体育用品借还管理系统{% endblock %}
+{% block content %}
+<section class="home-hero mb-4">
+    <div class="home-hero-copy">
+        <span class="eyebrow">Campus Sports Dashboard</span>
+        {% if current_user %}
+            <h1>{{ current_user.real_name }}，今天的器材任务已整理好</h1>
+            {% if current_user.role == "admin" %}
+                <p>集中处理待审核申请、未归还记录和库存状态，让校园体育器材流转更清晰。</p>
+            {% else %}
+                <p>查看可借数量、提交借用申请、跟进归还状态，减少线下排队和反复确认。</p>
+            {% endif %}
+        {% else %}
+            <h1>校园体育器材借还管理系统</h1>
+            <p>为学生和管理员提供清晰可信的借用、审核、归还和库存管理入口。</p>
+        {% endif %}
+        <div class="home-hero-actions">
+            {% if current_user and current_user.role == "student" %}
+                <a class="btn btn-accent" href="{{ url_for('equipment_list') }}">申请借用</a>
+                <a class="btn btn-outline-primary" href="{{ url_for('my_records') }}">查看我的记录</a>
+            {% elif current_user and current_user.role == "admin" %}
+                <a class="btn btn-accent" href="{{ url_for('admin_borrow_review') }}">处理待审核</a>
+                <a class="btn btn-outline-primary" href="{{ url_for('admin_returns') }}">登记归还</a>
+            {% else %}
+                <a class="btn btn-accent" href="{{ url_for('login') }}">登录使用</a>
+                <a class="btn btn-outline-primary" href="{{ url_for('register') }}">学生注册</a>
+            {% endif %}
+        </div>
+        <div class="hero-trust-row" aria-label="系统概览">
+            <span>今日可借 {{ stats.available_stock }} 件</span>
+            <span>待审核 {{ stats.pending_count }} 条</span>
+            <span>未归还 {{ stats.unreturned_count }} 条</span>
+        </div>
+    </div>
+    <div class="home-hero-visual">
+        <img src="{{ url_for('static', filename='images/hero-campus-dashboard-ai.png') }}" alt="现代校园体育馆器材管理场景">
+        <div class="hero-floating-card hero-floating-primary">
+            <span>今日可借</span>
+            <strong>{{ stats.available_stock }}</strong>
+            <small>总库存 {{ stats.total_stock }} 件</small>
+        </div>
+        <div class="hero-floating-card hero-floating-secondary">
+            <span>{{ "管理员待办" if current_user and current_user.role == "admin" else "信用与申请" }}</span>
+            {% if current_user and current_user.role == "student" %}
+                <strong>{{ current_user.credit_score }}</strong>
+                <small>违规 {{ current_user.violation_count }} 次</small>
+            {% elif current_user and current_user.role == "admin" %}
+                <strong>{{ stats.pending_count + stats.unreturned_count }}</strong>
+                <small>审核与归还需关注</small>
+            {% else %}
+                <strong>2</strong>
+                <small>学生端 / 管理员端</small>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="home-metric-grid mb-4" aria-label="关键数据">
+    <a class="home-metric-card" href="{{ url_for('equipment_list') if current_user else url_for('login') }}">
+        <span class="metric-icon">A</span>
+        <div>
+            <p>今日可借数量</p>
+            <strong>{{ stats.available_stock }}</strong>
+            <small>总库存 {{ stats.total_stock }} 件</small>
+        </div>
+    </a>
+    <a class="home-metric-card" href="{{ url_for('admin_borrow_review') if current_user and current_user.role == 'admin' else url_for('my_records') if current_user else url_for('login') }}">
+        <span class="metric-icon">R</span>
+        <div>
+            <p>待审核申请</p>
+            <strong>{{ stats.pending_count }}</strong>
+            <small>{{ "进入审核队列" if current_user and current_user.role == "admin" else "查看申请进度" }}</small>
+        </div>
+    </a>
+    <a class="home-metric-card metric-card-warm" href="{{ url_for('admin_returns') if current_user and current_user.role == 'admin' else url_for('my_records') if current_user else url_for('login') }}">
+        <span class="metric-icon">O</span>
+        <div>
+            <p>未归还记录</p>
+            <strong>{{ stats.unreturned_count }}</strong>
+            <small>含已通过和逾期记录</small>
+        </div>
+    </a>
+    <div class="home-metric-card">
+        <span class="metric-icon">S</span>
+        <div>
+            {% if current_user and current_user.role == "student" %}
+                <p>我的信用分</p>
+                <strong>{{ current_user.credit_score }}</strong>
+                <small>违规 {{ current_user.violation_count }} 次</small>
+            {% elif current_user and current_user.role == "admin" %}
+                <p>管理员待办</p>
+                <strong>{{ stats.pending_count + stats.unreturned_count }}</strong>
+                <small>审核与归还需要关注</small>
+            {% else %}
+                <p>系统入口</p>
+                <strong>2</strong>
+                <small>学生端 / 管理员端</small>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="home-bento-grid mb-4">
+    <div class="home-panel home-panel-wide">
+        <div class="section-title">
+            <h2>分类快捷入口</h2>
+            {% if current_user %}
+                <a href="{{ url_for('equipment_list') }}">查看全部</a>
+            {% endif %}
+        </div>
+        <div class="category-grid category-grid-premium">
+            {% set category_images = {
+                "球类": "images/category-ball.png",
+                "球拍类": "images/category-racket.png",
+                "健身类": "images/category-fitness.png",
+                "其他": "images/category-other.png"
+            } %}
+            {% for item in categories %}
+                <a class="category-card" href="{{ url_for('equipment_list', category=item) if current_user else url_for('login') }}">
+                    <img src="{{ url_for('static', filename=category_images[item]) }}" alt="{{ item }}器材">
+                    <span>{{ item }}</span>
+                    <strong>{{ category_counts.get(item, 0) }} 件可借</strong>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="home-panel">
+        <div class="section-title">
+            <h2>{{ "我的信用概览" if current_user and current_user.role == "student" else "今日管理重点" }}</h2>
+        </div>
+        <div class="priority-card">
+            {% if current_user and current_user.role == "student" %}
+                <strong>{{ current_user.credit_score }} 分</strong>
+                <p>按时归还器材可保持良好信用，低信用会触发更严格审核。</p>
+                <a class="btn btn-outline-primary btn-sm" href="{{ url_for('my_records') }}">查看状态</a>
+            {% elif current_user and current_user.role == "admin" %}
+                <strong>{{ stats.pending_count + stats.unreturned_count }} 项</strong>
+                <p>优先处理待审核和未归还记录，避免影响学生后续借用。</p>
+                <a class="btn btn-outline-primary btn-sm" href="{{ url_for('admin_statistics') }}">查看统计</a>
+            {% else %}
+                <strong>开始使用</strong>
+                <p>登录后可查看个人信用分、申请进度和管理员待办。</p>
+                <a class="btn btn-outline-primary btn-sm" href="{{ url_for('login') }}">进入系统</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        {% if current_user and current_user.role == "student" %}
+            <div class="home-panel mb-4">
+                <div class="section-title">
+                    <h2>推荐器材</h2>
+                </div>
+                <div class="row g-3">
+                    {% for item in recommendations %}
+                        <div class="col-md-4">
+                            <div class="equipment-card h-100">
+                                <img class="equipment-thumb" src="{{ url_for('static', filename=equipment_image(item)) }}" alt="{{ item.name }}插画">
+                                <div>
+                                    <h3>{{ item.name }}</h3>
+                                    <p>{{ item.category }} · 推荐分 {{ item.recommend_score }}</p>
+                                </div>
+                                <div class="stock">
+                                    <span>可借</span>
+                                    <strong>{{ item.available_stock }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="col-12">
+                            <div class="empty-state empty-state-compact">
+                                <img src="{{ url_for('static', filename='images/split/empty-borrow.png') }}" alt="暂无推荐器材">
+                                <div>
+                                    <strong>暂无个性化推荐</strong>
+                                    <p>完成一次借用后，系统会根据你的偏好推荐器材。</p>
+                                    <a class="btn btn-sm btn-accent" href="{{ url_for('equipment_list') }}">去申请借用</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="home-panel">
+            <div class="section-title">
+                <h2>当前可借器材</h2>
+                {% if current_user %}
+                    <a href="{{ url_for('equipment_list') }}">查看全部</a>
+                {% endif %}
+            </div>
+            <div class="row g-3">
+                {% for item in equipment %}
+                    <div class="col-md-6">
+                        <div class="equipment-card">
+                            <img class="equipment-thumb" src="{{ url_for('static', filename=equipment_image(item)) }}" alt="{{ item.name }}插画">
+                            <div>
+                                <h3>{{ item.name }}</h3>
+                                <p>{{ item.category }} · {{ item.status }}</p>
+                            </div>
+                            <div class="stock">
+                                <span>可借</span>
+                                <strong>{{ item.available_stock }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-12">
+                        <div class="hot-empty">暂无可借器材。</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="home-panel h-100">
+            <div class="section-title">
+                <h2>热门用品</h2>
+            </div>
+            <div class="hot-panel">
+                <div class="hot-panel-art">
+                    {% if hot_items %}
+                        <img src="{{ url_for('static', filename='images/split/hot-trophy.png') }}" alt="热门用品奖杯">
+                        <strong>借用热榜</strong>
+                        <span>按借用次数统计</span>
+                    {% else %}
+                        <img src="{{ url_for('static', filename='images/split/empty-ranking.png') }}" alt="暂无热门排行">
+                        <strong>暂无排行</strong>
+                        <span>完成借用后自动统计</span>
+                    {% endif %}
+                </div>
+                <div class="hot-list">
+                    {% for item in hot_items %}
+                        <div class="hot-item">
+                            <img class="hot-item-thumb" src="{{ url_for('static', filename=equipment_image(item)) }}" alt="{{ item.name }}插画">
+                            <div>
+                                <span>{{ loop.index }}. {{ item.name }}</span>
+                                <small>{{ item.category }} · 可借 {{ item.available_stock }}</small>
+                            </div>
+                            <span class="badge text-bg-primary">{{ item.borrow_count }} 次</span>
+                        </div>
+                    {% else %}
+                        <div class="hot-empty">暂无借用数据。</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="borrow-flow home-flow mt-4">
+    <div class="section-title">
+        <h2>借用流程</h2>
+    </div>
+    <div class="flow-grid">
+        <div class="flow-card">
+            <img src="{{ url_for('static', filename='images/split/jieyong1.png') }}" alt="选择器材">
+            <span>01</span>
+            <strong>选择器材</strong>
+            <p>按分类、库存和用途选择合适用品。</p>
+        </div>
+        <div class="flow-card">
+            <img src="{{ url_for('static', filename='images/split/jieyong2.png') }}" alt="提交申请">
+            <span>02</span>
+            <strong>提交申请</strong>
+            <p>填写数量、借用日期和预计归还日期。</p>
+        </div>
+        <div class="flow-card">
+            <img src="{{ url_for('static', filename='images/split/jieyong3.png') }}" alt="管理员审核">
+            <span>03</span>
+            <strong>管理员审核</strong>
+            <p>管理员结合库存和信用情况确认申请。</p>
+        </div>
+        <div class="flow-card">
+            <img src="{{ url_for('static', filename='images/split/jieyong4.png') }}" alt="归还登记">
+            <span>04</span>
+            <strong>归还登记</strong>
+            <p>归还后登记状态，库存和信用自动更新。</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}数据统计 - 体育用品借还管理系统{% endblock %}
+{% block content %}
+<div class="section-title">
+    <h1>数据可视化统计</h1>
+</div>
+
+<div class="statistics-summary mb-4">
+    <div class="stat-box">
+        <span>器材种类</span>
+        <strong>{{ summary.equipment_total }}</strong>
+    </div>
+    <div class="stat-box">
+        <span>借用记录</span>
+        <strong>{{ summary.borrow_total }}</strong>
+    </div>
+    <div class="stat-box">
+        <span>待审核申请</span>
+        <strong>{{ summary.pending_total }}</strong>
+    </div>
+    <div class="stat-box">
+        <span>当前逾期</span>
+        <strong>{{ summary.overdue_total }}</strong>
+    </div>
+</div>
+
+<div class="statistics-grid">
+    <section class="chart-card">
+        <div class="chart-title">
+            <h2>各类器材库存占比</h2>
+            <span>按总库存统计</span>
+        </div>
+        <div id="stockChart" class="chart-box"></div>
+    </section>
+    <section class="chart-card">
+        <div class="chart-title">
+            <h2>热门器材借用排行</h2>
+            <span>按累计借用数量排序</span>
+        </div>
+        <div id="hotChart" class="chart-box"></div>
+    </section>
+    <section class="chart-card chart-card-wide">
+        <div class="chart-title">
+            <h2>每日/每周借用申请数量</h2>
+            <span>申请时间趋势</span>
+        </div>
+        <div class="trend-chart-grid">
+            <div id="dailyApplicationChart" class="chart-box chart-box-wide"></div>
+            <div id="weeklyApplicationChart" class="chart-box chart-box-wide"></div>
+        </div>
+    </section>
+    <section class="chart-card">
+        <div class="chart-title">
+            <h2>逾期记录数量统计</h2>
+            <span>当前逾期与扣分情况</span>
+        </div>
+        <div id="overdueChart" class="chart-box"></div>
+    </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script>
+    const chartData = {{ chart_data | safe }};
+    const chartColors = ["#0b66e4", "#06b6d4", "#22c55e", "#f97316", "#facc15", "#ef4444"];
+
+    function initChart(id, options) {
+        const element = document.getElementById(id);
+        const chart = echarts.init(element);
+        chart.setOption(options);
+        window.addEventListener("resize", () => chart.resize());
+        return chart;
+    }
+
+    initChart("stockChart", {
+        color: chartColors,
+        tooltip: {
+            trigger: "item",
+            formatter: (item) => `${item.name}<br>总库存：${item.value}<br>可借：${item.data.available}`,
+        },
+        legend: {
+            bottom: 0,
+        },
+        series: [{
+            name: "库存占比",
+            type: "pie",
+            radius: ["46%", "70%"],
+            center: ["50%", "44%"],
+            avoidLabelOverlap: true,
+            label: {
+                formatter: "{b}\n{d}%",
+            },
+            data: chartData.stockByCategory,
+        }],
+    });
+
+    initChart("hotChart", {
+        color: ["#0b66e4"],
+        grid: {
+            left: 88,
+            right: 28,
+            top: 24,
+            bottom: 28,
+        },
+        tooltip: {
+            trigger: "axis",
+            axisPointer: { type: "shadow" },
+        },
+        xAxis: {
+            type: "value",
+            minInterval: 1,
+        },
+        yAxis: {
+            type: "category",
+            data: chartData.hotEquipment.names,
+        },
+        series: [{
+            name: "借用数量",
+            type: "bar",
+            barWidth: 18,
+            data: chartData.hotEquipment.values,
+        }],
+    });
+
+    initChart("dailyApplicationChart", {
+        color: ["#06b6d4"],
+        tooltip: {
+            trigger: "axis",
+        },
+        grid: {
+            left: 44,
+            right: 30,
+            top: 28,
+            bottom: 42,
+        },
+        xAxis: [{
+            type: "category",
+            data: chartData.dailyApplications.labels,
+            axisLabel: { rotate: 30 },
+        }],
+        yAxis: [{
+            type: "value",
+            minInterval: 1,
+        }],
+        series: [
+            {
+                name: "每日申请",
+                type: "line",
+                smooth: true,
+                symbolSize: 8,
+                data: chartData.dailyApplications.values,
+            },
+        ],
+    });
+
+    initChart("weeklyApplicationChart", {
+        color: ["#22c55e"],
+        tooltip: {
+            trigger: "axis",
+            axisPointer: { type: "shadow" },
+        },
+        grid: {
+            left: 44,
+            right: 30,
+            top: 28,
+            bottom: 42,
+        },
+        xAxis: [{
+            type: "category",
+            data: chartData.weeklyApplications.labels,
+            axisLabel: { rotate: 30 },
+        }],
+        yAxis: [{
+            type: "value",
+            minInterval: 1,
+        }],
+        series: [{
+            name: "每周申请",
+            type: "bar",
+            barMaxWidth: 32,
+            data: chartData.weeklyApplications.values,
+        }],
+    });
+
+    initChart("overdueChart", {
+        color: ["#f97316", "#ef4444", "#facc15"],
+        tooltip: {
+            trigger: "axis",
+            axisPointer: { type: "shadow" },
+        },
+        grid: {
+            left: 38,
+            right: 24,
+            top: 28,
+            bottom: 42,
+        },
+        xAxis: {
+            type: "category",
+            data: chartData.overdueStats.map((item) => item.name),
+        },
+        yAxis: {
+            type: "value",
+            minInterval: 1,
+        },
+        series: [{
+            name: "记录数量",
+            type: "bar",
+            barWidth: 34,
+            data: chartData.overdueStats.map((item) => item.value),
+        }],
+    });
+</script>
+{% endblock %}

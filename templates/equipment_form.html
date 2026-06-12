@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ "修改用品" if equipment else "添加用品" }} - 体育用品借还管理系统{% endblock %}
+{% block content %}
+<div class="form-panel mx-auto">
+    <h1>{{ "修改用品" if equipment else "添加用品" }}</h1>
+    <form method="post">
+        <div class="mb-3">
+            <label class="form-label" for="name">用品名称</label>
+            <input class="form-control" id="name" name="name" value="{{ equipment.name if equipment else '' }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="category">分类</label>
+            <select class="form-select" id="category" name="category" required>
+                {% for item in categories %}
+                    <option value="{{ item }}" {% if equipment and equipment.category == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label" for="total_stock">总库存</label>
+                <input class="form-control" id="total_stock" name="total_stock" type="number" min="0" value="{{ equipment.total_stock if equipment else 0 }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label" for="available_stock">可借数量</label>
+                <input class="form-control" id="available_stock" name="available_stock" type="number" min="0" value="{{ equipment.available_stock if equipment else 0 }}" required>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="status">状态</label>
+            <select class="form-select" id="status" name="status">
+                {% set current_status = equipment.status if equipment else "正常" %}
+                <option value="正常" {% if current_status == "正常" %}selected{% endif %}>正常</option>
+                <option value="停用" {% if current_status == "停用" %}selected{% endif %}>停用</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="remark">备注</label>
+            <textarea class="form-control" id="remark" name="remark" rows="3">{{ equipment.remark if equipment else '' }}</textarea>
+        </div>
+        <button class="btn btn-accent w-100" type="submit">保存</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}借用审核 - 体育用品借还管理系统{% endblock %}
+{% block content %}
+<div class="section-title">
+    <h1>借用审核</h1>
+</div>
+
+<div class="table-responsive data-table-wrap borrow-review-table">
+    <table class="table table-hover align-middle">
+        <thead>
+        <tr>
+            <th>学生</th>
+            <th>用品</th>
+            <th>数量/库存</th>
+            <th>借用安排</th>
+            <th>类型/信用</th>
+            <th>用途</th>
+            <th>通过</th>
+            <th>驳回</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for record in records %}
+            <tr>
+                <td class="student-cell" data-label="学生">
+                    <strong>{{ record.real_name }}</strong>
+                    <div class="small text-muted">{{ record.username }}</div>
+                </td>
+                <td class="item-cell" data-label="用品">
+                    <span class="table-item-name">
+                        <img src="{{ url_for('static', filename=equipment_image(record)) }}" alt="{{ record.equipment_name }}插画">
+                        {{ record.equipment_name }}
+                    </span>
+                </td>
+                <td class="quantity-cell" data-label="数量/库存">
+                    <strong>{{ record.quantity }}</strong>
+                    <div class="small text-muted">库存 {{ record.available_stock }}</div>
+                </td>
+                <td class="date-cell" data-label="借用安排">
+                    <strong>{{ record.borrow_date }}</strong>
+                    <div class="small text-muted">归还 {{ record.expected_return_date }}</div>
+                </td>
+                <td class="meta-cell" data-label="类型/信用">
+                    {% if record.is_reservation %}
+                        <span class="badge status-reservation">预约</span>
+                    {% else %}
+                        <span class="badge status-normal">普通</span>
+                    {% endif %}
+                    <div class="small text-muted">信用 {{ record.credit_score }} / 违规 {{ record.violation_count }}</div>
+                    {% if record.stock_notice %}
+                        <div class="small text-muted">{{ record.stock_notice }}</div>
+                    {% endif %}
+                </td>
+                <td class="purpose-cell" data-label="用途">{{ record.purpose or "-" }}</td>
+                <td class="review-approve-action" data-label="通过">
+                    <form class="review-approve-form" method="post" action="{{ url_for('admin_review_action', record_id=record.id, action='approve') }}">
+                        <button class="btn btn-sm btn-success" type="submit">通过申请</button>
+                    </form>
+                </td>
+                <td class="review-reject-action" data-label="驳回">
+                    <form class="review-reject-form" method="post" action="{{ url_for('admin_review_action', record_id=record.id, action='reject') }}">
+                        <label class="form-label small text-muted mb-1" for="reject_reason_{{ record.id }}">驳回原因</label>
+                        <input class="form-control form-control-sm" id="reject_reason_{{ record.id }}" name="reject_reason" placeholder="请填写驳回原因">
+                        <button class="btn btn-sm btn-outline-danger" type="submit">驳回申请</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td class="empty-table-cell" colspan="8">
+                    <img src="{{ url_for('static', filename='images/split/empty-records.png') }}" alt="暂无待审核申请">
+                    <strong>暂无待审核申请</strong>
+                    <span>新的学生申请会自动进入这里，按提交时间排序。</span>
+                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin_records') }}">查看借用记录</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

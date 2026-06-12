@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}归还管理 - 体育用品借还管理系统{% endblock %}
+{% block content %}
+<div class="section-title">
+    <h1>归还管理</h1>
+</div>
+
+<div class="table-responsive data-table-wrap admin-returns-table">
+    <table class="table table-hover align-middle">
+        <thead>
+        <tr>
+            <th>学生</th>
+            <th>用品</th>
+            <th>数量</th>
+            <th>借用日期</th>
+            <th>预计归还</th>
+            <th>状态</th>
+            <th>信用分</th>
+            <th>归还登记</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for record in records %}
+            <tr>
+                <td data-label="学生">{{ record.real_name }}（{{ record.username }}）</td>
+                <td data-label="用品">
+                    <span class="table-item-name">
+                        <img src="{{ url_for('static', filename=equipment_image(record)) }}" alt="{{ record.equipment_name }}插画">
+                        {{ record.equipment_name }}
+                    </span>
+                </td>
+                <td data-label="数量">{{ record.quantity }}</td>
+                <td data-label="借用日期">{{ record.borrow_date }}</td>
+                <td data-label="预计归还">{{ record.expected_return_date }}</td>
+                <td data-label="状态"><span class="badge status-{{ record.status }}">{{ record_status[record.status] }}</span></td>
+                <td data-label="信用分">{{ record.credit_score }}</td>
+                <td data-label="归还登记">
+                    <form class="return-form" method="post" action="{{ url_for('admin_return_action', record_id=record.id) }}">
+                        <select class="form-select form-select-sm" name="return_condition">
+                            <option value="正常">正常</option>
+                            <option value="损坏">损坏</option>
+                        </select>
+                        <input class="form-control form-control-sm" name="damage_note" placeholder="损坏说明">
+                        <button class="btn btn-sm btn-accent" type="submit">确认归还</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td class="empty-table-cell" colspan="8">
+                    <img src="{{ url_for('static', filename='images/split/empty-court.png') }}" alt="暂无待归还记录">
+                    <strong>暂无待归还记录</strong>
+                    <span>已通过且未归还的借用记录会出现在这里。</span>
+                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin_borrow_review') }}">查看待审核</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

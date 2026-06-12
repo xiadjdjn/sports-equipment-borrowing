@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}申请借用 - 体育用品借还管理系统{% endblock %}
+{% block content %}
+<div class="form-panel mx-auto">
+    <h1>申请借用</h1>
+    <p class="text-muted">{{ equipment.name }} · {{ equipment.category }} · 当前可借 {{ equipment.available_stock }}</p>
+    {% if current_user and current_user.credit_score < low_credit_score %}
+        <div class="alert alert-warning">
+            当前信用分 {{ current_user.credit_score }}，单次最多借用 1 件，申请将由管理员重点审核。
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            可选择未来借用日期。若当天库存不足但未来预计可用，系统会自动按预约借用提交。
+        </div>
+    {% endif %}
+    <form method="post">
+        <div class="mb-3">
+            <label class="form-label" for="quantity">借用数量</label>
+            <input class="form-control" id="quantity" name="quantity" type="number" min="1" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="borrow_date">借用日期</label>
+            <input class="form-control" id="borrow_date" name="borrow_date" type="date" value="{{ today }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="expected_return_date">预计归还日期</label>
+            <input class="form-control" id="expected_return_date" name="expected_return_date" type="date" value="{{ today }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="purpose">用途说明</label>
+            <textarea class="form-control" id="purpose" name="purpose" rows="3"></textarea>
+        </div>
+        <button class="btn btn-accent w-100" type="submit">提交申请</button>
+    </form>
+</div>
+{% endblock %}

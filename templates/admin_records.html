@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}借用记录 - 体育用品借还管理系统{% endblock %}
+{% block content %}
+<div class="section-title">
+    <h1>借用记录管理</h1>
+</div>
+
+<form class="filter-bar row g-2 mb-3" method="get">
+    <div class="col-md-3">
+        <input class="form-control" name="student" value="{{ student }}" placeholder="学生姓名或账号">
+    </div>
+    <div class="col-md-3">
+        <input class="form-control" name="equipment_name" value="{{ equipment_name }}" placeholder="用品名称">
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" name="status">
+            <option value="">全部状态</option>
+            {% for key, label in record_status.items() %}
+                <option value="{{ key }}" {% if status == key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3 d-grid">
+        <button class="btn btn-primary" type="submit">查询</button>
+    </div>
+</form>
+
+<div class="table-responsive data-table-wrap admin-records-table">
+    <table class="table table-hover align-middle">
+        <thead>
+        <tr>
+            <th>学生</th>
+            <th>用品</th>
+            <th>数量</th>
+            <th>借用日期</th>
+            <th>预计归还</th>
+            <th>实际归还</th>
+            <th>状态</th>
+            <th>类型/信用</th>
+            <th>归还情况</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for record in records %}
+            <tr>
+                <td class="record-student-cell" data-label="学生">{{ record.real_name }}（{{ record.username }}）</td>
+                <td class="record-item-cell" data-label="用品">
+                    <span class="table-item-name">
+                        <img src="{{ url_for('static', filename=equipment_image(record)) }}" alt="{{ record.equipment_name }}插画">
+                        {{ record.equipment_name }}
+                    </span>
+                </td>
+                <td class="record-quantity-cell" data-label="数量">{{ record.quantity }}</td>
+                <td class="record-date-cell" data-label="借用日期">{{ record.borrow_date }}</td>
+                <td class="record-date-cell" data-label="预计归还">{{ record.expected_return_date }}</td>
+                <td class="record-date-cell" data-label="实际归还">{{ record.actual_return_date or "-" }}</td>
+                <td class="record-status-cell" data-label="状态"><span class="badge status-{{ record.status }}">{{ record_status[record.status] }}</span></td>
+                <td class="record-type-cell" data-label="类型/信用">
+                    {% if record.is_reservation %}
+                        <span class="badge status-reservation">预约</span>
+                    {% else %}
+                        <span class="badge status-normal">普通</span>
+                    {% endif %}
+                    <span class="small text-muted">信用 {{ record.credit_score }}</span>
+                </td>
+                <td class="record-return-cell" data-label="归还情况">
+                    {% if record.return_condition %}
+                        {{ record.return_condition }} {{ record.damage_note }}
+                    {% elif record.stock_notice %}
+                        {{ record.stock_notice }}
+                    {% elif record.status == "rejected" %}
+                        驳回：{{ record.reject_reason or "未填写原因" }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td class="empty-table-cell" colspan="9">
+                    <img src="{{ url_for('static', filename='images/split/empty-records.png') }}" alt="暂无借用记录">
+                    <strong>暂无借用记录</strong>
+                    <span>当学生提交申请并完成审核后，这里会沉淀完整记录。</span>
+                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin_equipment') }}">返回器材管理</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

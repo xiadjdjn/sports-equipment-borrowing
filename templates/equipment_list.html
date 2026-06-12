@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}我要借用 - 体育用品借还管理系统{% endblock %}
+{% block content %}
+<div class="section-title">
+    <h1>我要借用</h1>
+</div>
+
+<form class="filter-bar row g-2 mb-3" method="get">
+    <div class="col-md-5">
+        <input class="form-control" name="keyword" value="{{ keyword }}" placeholder="按用品名称搜索">
+    </div>
+    <div class="col-md-4">
+        <select class="form-select" name="category">
+            <option value="">全部分类</option>
+            {% for item in categories %}
+                <option value="{{ item }}" {% if category == item %}selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3 d-grid">
+        <button class="btn btn-primary" type="submit">查询</button>
+    </div>
+</form>
+
+<div class="table-responsive data-table-wrap">
+    <table class="table table-hover align-middle">
+        <thead>
+        <tr>
+            <th>用品名称</th>
+            <th>分类</th>
+            <th>总库存</th>
+            <th>可借数量</th>
+            <th>状态</th>
+            <th>备注</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in equipment %}
+            <tr>
+                <td data-label="用品名称">
+                    <span class="table-item-name">
+                        <img src="{{ url_for('static', filename=equipment_image(item)) }}" alt="{{ item.name }}插画">
+                        {{ item.name }}
+                    </span>
+                </td>
+                <td data-label="分类">{{ item.category }}</td>
+                <td data-label="总库存">{{ item.total_stock }}</td>
+                <td data-label="可借数量"><strong class="stock-inline">{{ item.available_stock }}</strong></td>
+                <td data-label="状态"><span class="badge status-available">{{ item.status }}</span></td>
+                <td data-label="备注">{{ item.remark or "-" }}</td>
+                <td data-label="操作">
+                    {% if item.available_stock > 0 %}
+                        <a class="btn btn-sm btn-accent" href="{{ url_for('borrow', equipment_id=item.id) }}">申请借用</a>
+                    {% else %}
+                        <button class="btn btn-sm btn-secondary" disabled>库存不足</button>
+                    {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td class="empty-table-cell" colspan="7">
+                    <img src="{{ url_for('static', filename='images/split/empty-borrow.png') }}" alt="暂无可借用品">
+                    <strong>没有找到符合条件的用品</strong>
+                    <span>可以调整分类或关键词后重新查询。</span>
+                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('equipment_list') }}">查看全部器材</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}登录 - 体育用品借还管理系统{% endblock %}
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-stage" data-auth-stage>
+        <div class="stage-brand">
+            <span class="spark-mark">S</span>
+            <span>校园器材借还</span>
+        </div>
+        <span class="auth-court-line line-one"></span>
+        <span class="auth-court-line line-two"></span>
+        <span class="sport-shape shape-ball"></span>
+        <span class="sport-shape shape-racket"></span>
+        <span class="sport-shape shape-card"></span>
+        <div class="auth-stage-copy">
+            <p>校园体育用品</p>
+            <h2>让借用、审核和归还都可追踪</h2>
+        </div>
+    </div>
+    <div class="form-panel auth-panel">
+        <span class="auth-kicker">Welcome back</span>
+        <h1>用户登录</h1>
+        <p class="text-muted">管理员默认账号：admin，密码：admin123。</p>
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label" for="username">用户名</label>
+                <input class="form-control" id="username" name="username" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="password">密码</label>
+                <div class="password-field" data-password-field>
+                    <input class="form-control" id="password" name="password" type="password" autocomplete="current-password" required>
+                    <button class="password-toggle" type="button" data-password-toggle aria-label="显示密码" aria-pressed="false">
+                        <svg class="icon-eye" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <button class="btn btn-accent w-100" type="submit">登录</button>
+        </form>
+    </div>
+</section>
+<script src="{{ url_for('static', filename='js/auth-motion.js') }}"></script>
+{% endblock %}
