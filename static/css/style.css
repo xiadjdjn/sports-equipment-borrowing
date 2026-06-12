@@ -478,12 +478,17 @@ a:focus {
 }
 
 .priority-card {
+    align-items: center;
     background:
         linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(248, 250, 252, .96));
     border: 1px solid var(--line);
     border-radius: 8px;
-    min-height: 100%;
-    padding: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 220px;
+    padding: 1.25rem;
+    text-align: center;
 }
 
 .priority-card strong {
@@ -495,7 +500,8 @@ a:focus {
 
 .priority-card p {
     color: var(--muted);
-    margin: .75rem 0 1rem;
+    margin: .75rem auto 1rem;
+    max-width: 22rem;
 }
 
 .home-flow {

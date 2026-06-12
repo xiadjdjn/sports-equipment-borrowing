@@ -111,10 +111,10 @@
         </div>
         <div class="category-grid category-grid-premium">
             {% set category_images = {
-                "球类": "images/category-ball.png",
-                "球拍类": "images/category-racket.png",
-                "健身类": "images/category-fitness.png",
-                "其他": "images/category-other.png"
+                "球类": "images/category-ball-real.png",
+                "球拍类": "images/category-racket-real.png",
+                "健身类": "images/category-fitness-real.png",
+                "其他": "images/category-other-real.png"
             } %}
             {% for item in categories %}
                 <a class="category-card" href="{{ url_for('equipment_list', category=item) if current_user else url_for('login') }}">
